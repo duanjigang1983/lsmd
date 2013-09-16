@@ -1,4 +1,0 @@
-#!/bin/bash
-#echo "stdout"
-#ls /var/spool/cron
-/bin/lsa

@@ -1,2 +1,0 @@
-#!/bin/bash
-ifconfig -a | grep eth | awk '{print$1}'

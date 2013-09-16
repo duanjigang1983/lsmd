@@ -1,4 +1,0 @@
-#!/bin/sh -e
-exec="/bin/hostname"
-[ -x $exec ] || exit 1
-eval $exec

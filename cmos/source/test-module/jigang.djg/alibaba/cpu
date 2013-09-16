@@ -1,5 +1,0 @@
-#!/bin/bash
-cpu_num=`cat /proc/cpuinfo | grep "processor" | wc -l`
-echo "cpu_num: $cpu_num"
-/usr/sbin/dmidecode -t processor | grep -E "ID|Max Speed|Current Speed|Core Count|Core Enable|Thread Count"
-
