@@ -1,0 +1,11 @@
+#!/bin/bash
+#yum install tops-gemclient-run -y
+aa=`yum -h | grep "disableplugin"`
+
+if [ -z "$aa" ]
+then
+	yum install tops-gemclient-run -y  --disablerepo=* --enablerepo=ops.*   --noplugins
+else
+	yum install tops-gemclient-run -y  --disablerepo=* --enablerepo=ops.*  --disableplugin=branch --noplugins
+fi
+

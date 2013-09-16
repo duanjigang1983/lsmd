@@ -1,0 +1,106 @@
+#!/bin/bash
+pid=`echo $$`
+sfile="/tmp/res$pid.txt"
+pfile="/tmp/params$pid.txt"
+export LC_ALL=C
+
+if [ $# -ne 1 ]
+then
+	echo "usage:`basename $0` pkgname"
+	exit 1
+fi
+cmd=$1
+
+function gen_standards()
+{
+	echo >$sfile
+	echo "rpm5.7=RPM version 4.4.2.3" >>$sfile
+	echo "rpm5.4=RPM version 4.4.2.3" >>$sfile
+	echo "rpm4=RPM version 4.3.3" >>$sfile
+	echo "rpm6.0=RPM version 4.8.0" >>$sfile
+}
+
+function gen_params()
+{
+	echo >$pfile	
+	echo "rpm=rpm --version" >>$pfile
+}
+function get_res()
+{
+	name=$1
+	cat $sfile | grep -w $name | awk -F '=' '{print$2}'
+}
+
+function get_params()
+{
+	name=$1
+	cat $pfile | grep -w $name | awk -F '=' '{print$2}'
+}
+
+function get_release_r()
+{
+        if  [ -f "/etc/redhat-release" ]
+        then
+                #a=`cat /etc/redhat-release | awk '{a=match($0,"[5|6|4]");print substr($0,a)}' | awk '{print substr($1,1,1)}'`
+                a=`cat /etc/redhat-release | awk '{a=match($0,"[5|6|4]");print substr($0,a)}' | awk '{print substr($1,1)}'`
+                echo $a
+        fi
+}
+
+
+function getpath()
+{
+	echo "$PATH" | awk -F ':' '{for(i=1;i<=NF;i++)print$i}' | while read path
+	do
+		aa="$path/$cmd"
+		#echo $aa
+		if [ -x "$aa" ]
+		then
+			echo $aa
+			break
+		fi
+	done
+}
+ttpath=`getpath`
+
+if  [ -z "$ttpath" ]
+then
+	echo "failed"
+	exit 1
+fi
+osv=`get_release_r`
+#echo "$ttpath-$cmd-$osv"
+var="$cmd$osv"
+gen_params
+run=`get_params $cmd`
+unlink $pfile
+gen_standards
+res=`get_res $cmd$osv`
+unlink $sfile
+if [ -z "$run" ]
+then
+	echo "failed"
+	exit 1
+fi
+
+if [ -z "$res" ]
+then
+	echo "failed"
+	exit 1
+fi
+
+true_res=`$run`
+
+if [ -z "$true_res" ]
+then
+	echo "failed"
+	exit 1
+fi
+
+if [ "$true_res" != "$res" ]
+then
+	echo "failed"
+	exit 1
+fi
+echo "success"
+exit 0

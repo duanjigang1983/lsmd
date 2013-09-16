@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [ $# -eq 1 ]
+then
+	/usr/local/bin/setuidgid  nobody /bin/rpm -qi "$1"
+fi 

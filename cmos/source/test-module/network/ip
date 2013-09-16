@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ifconfig -a | grep eth | awk '{print$1}' | while read name
+do
+res=`ifconfig $name | grep "inet addr" | awk -F ':' '{print$2}' | awk '{print$1}'`
+	if ! [ -z "$res" ]
+	then
+		echo "$name $res"
+	fi
+done

@@ -1,0 +1,91 @@
+#!/bin/bash
+name="ntpd"
+start()
+{
+	PID=`ps -A | grep -w "$name" | awk '{print$1}'`
+	if ! [ -z "$PID" ]
+	then
+		echo "DONE: $name already running ($PID)"
+	else
+		service "$name" start 
+		#service "$name" start
+		PID=`ps -A | grep "$name" | awk '{print$1}'`
+		if [ -z "$PID" ]
+		then
+			echo -e "FAIL: start $name failed\n"
+		else
+			echo -e "DONE: start $name successfully\n"
+		fi
+	fi	
+}
+stop()
+{
+	PID=`ps -A | grep "$name" | awk '{print$1}'`
+	if [ -z "$PID" ]
+	then
+		echo "WARN: $name is not running"
+	else
+		service "$name" stop >/dev/null 2>&1
+		PID=`ps -A | grep "$name" | awk '{print$1}'`
+		if [ -z "$PID" ]
+		then
+			echo "DONE: stop $name successfully"
+		else
+			echo "FAILE: stop $name failed"
+		fi
+
+	fi 
+}
+status()
+{
+	tt=`ps -A | grep $name | awk '{print$1}'`
+	#ps -A | grep $name | awk '{print$1}'
+	#echo "ps -A | grep $name | awk'{print$1}'"
+	#echo $name
+	#echo $tt
+		if ! [ -z "$tt" ]
+		then
+			echo "DONE: $name is running now"
+		else
+			echo "DONE: $name is not running now"
+		fi
+
+}
+
+restart()
+{
+	PID=`ps -A | grep "$name" | awk '{print$1}'`
+	#ps -A | grep "$name" | awk '{print$1}'
+		if [ -z "$PID" ]
+		then
+			start;
+		else
+			service $name restart
+			#stop
+			#start
+		fi
+
+}
+
+case "$1" in
+	start)
+		start
+		exit 0
+		;;
+	stop)
+		stop
+		exit 0
+		;;
+	status)
+		status
+		exit 0
+		;;
+	restart)
+		restart
+		exit 0
+		;;
+	*)
+		bn=`basename $0`
+		echo "$bn stop|start|restart"
+		exit 0
+	esac
