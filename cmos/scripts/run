@@ -1,4 +1,4 @@
 #!/bin/sh
 exec 2>&1
-exec tcpserver -l 0 -R  -H  -X 0 43698 /usr/bin/cmos -f /etc/service/tops-cmos/module
+exec tcpserver -l 0 -R  -H  -X 0 43698 /usr/bin/cmos -f /etc/service/cmos/module
 

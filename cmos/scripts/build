@@ -1,9 +1,8 @@
 #!/bin/sh
 make cmos || exit 1
 make timeout || exit 1
-#cp cmos /usr/bin
-mkdir -p $DESTDIR/etc/service/tops-cmos
+mkdir -p $DESTDIR/etc/service/cmos
 mkdir -p $DESTDIR/usr/bin/
 install cmos $DESTDIR/usr/bin/
 install cmos-timeout $DESTDIR/usr/bin/
-cp -r module $DESTDIR/etc/service/tops-cmos/module
+cp -r module $DESTDIR/etc/service/cmos/module
