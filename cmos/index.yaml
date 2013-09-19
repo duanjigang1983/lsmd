@@ -6,5 +6,7 @@ default:
     - daemontools
   summary: Unified platform of agent program for configuration managment by duanjigang
   version: '1.1.0'
+  group: 'cmesoft'
+  packager: 'duanjigang'
 
 

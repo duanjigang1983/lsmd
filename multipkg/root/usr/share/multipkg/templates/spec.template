@@ -1,0 +1,45 @@
+Summary: %summary%
+Name: %name%
+Version: %version%
+Release: %release%
+License: %license%
+Group: Local
+Provides: %name% %providelist%
+Packager: %whoami%
+BuildRoot: %buildroot%
+BuildArch: %arch%
+autoreqprov: no
+Requires: %requirelist%
+Conflicts: %conflictlist%
+Obsoletes: %obsoletelist%
+%%ifset(prefix)
+Prefix: %prefix%
+%%endif
+
+%description
+%summary%
+
+%%ifscript(pre.sh)
+%pre
+%%pre.sh%%
+%%endif
+
+%%ifscript(post.sh)
+%post
+%%post.sh%%
+%%endif
+
+%%ifscript(preun.sh)
+%preun
+%%preun.sh%%
+%%endif
+
+%%ifscript(postun.sh)
+%postun
+%%postun.sh%%
+%%endif
+
+%%ifscript(posttrans.sh)
+%posttrans
+%%posttrans.sh%%
+%%endif
