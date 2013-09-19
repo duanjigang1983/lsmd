@@ -3,7 +3,10 @@ Name: %name%
 Version: %version%
 Release: %release%
 License: %license%
-Group: Local
+####mod by duanjigang
+#Group: Local
+Group: %group%
+###mod by duanjigang
 Provides: %name% %providelist%
 Packager: %whoami%
 BuildRoot: %buildroot%

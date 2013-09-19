@@ -3,6 +3,9 @@ default:
     version: '1.2'
     summary: Automation for package builds (supports RPM, deb)
     buildprefix: /usr
+    #modified by duanjigang
+    group: 'cmesoft'
+    #modified by duanjigang
 rpm:
     arch: noarch
     provides:
