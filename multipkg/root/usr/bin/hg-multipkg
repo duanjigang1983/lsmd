@@ -182,7 +182,7 @@ sub main {
     my $srcdir = File::Spec->catdir($dir, 'src');
     symlink File::Spec->catdir($clonedir, $pkgbase), $srcdir;
     archive($srcdir, $build, $opts);
-    my $ts = get_timestamp($clonedir, $opts->{r});
+	my $ts = get_timestamp($clonedir, $opts->{r});
     pkg($opts, $pkg, $srcdir, $build, $ts);
 }
 
