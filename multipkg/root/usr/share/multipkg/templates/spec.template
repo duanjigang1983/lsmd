@@ -8,7 +8,8 @@ License: %license%
 Group: %group%
 ###mod by duanjigang
 Provides: %name% %providelist%
-Packager: %whoami%
+#Packager: %whoami%
+Packager: %packager%
 BuildRoot: %buildroot%
 BuildArch: %arch%
 autoreqprov: no
