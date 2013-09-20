@@ -1,0 +1,15 @@
+---
+default:
+  name: repobuilder
+  requires:
+    - createrepo >= 0.4.11
+  summary: muti-thread tasks to update repo of yum server
+  version: '1.1.0'
+  group: 'cmesoft'
+  packager: 'duanjigang'
+  license: 'cmesoft'
+  keepopt: 
+      - %config(noreplace) /etc/repo.conf
+      - %defattr(-,root,root) 
+      - %attr(0777 nobody nobody) /etc/repo.conf
+

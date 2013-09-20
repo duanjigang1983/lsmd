@@ -1,0 +1,32 @@
+LIBS=  -g  -Wl,--enable-new-dtags -Wl,-rpath, -lpthread  -lIce -lIceUtil -lpthread
+#INC= -g -O2  -D__LINUX__ -c -Wall       -ftemplate-depth-128 -Wall -D_REENTRANT  
+INC= -g -O2  -D__LINUX__ -c -Wall -I./ -Wall
+CC=g++
+EXE=cmdserver
+$(EXE):IniHelper.o LogHelper.o cmdserver.o configserver.o NetHelper.o \
+	IniHelper.o LogHelper.o  cmdhelper.o cmthread.o iceutils.o
+	$(CC) -o $(EXE) $(LIBS) IniHelper.o iceutils.o NetHelper.o \
+	LogHelper.o cmdserver.o configserver.o cmdhelper.o cmthread.o 
+#DbMonitor.o:DbMonitor.cpp *.h
+	#$(CC) $(INC) DbMonitor.cpp
+Poster.o:Poster.cpp *.h
+	$(CC) $(INC) Poster.cpp
+cmdserver.o:cmdserver.cpp *.h
+	$(CC) $(INC) cmdserver.cpp
+configserver.o:configserver.cpp *.h
+	$(CC) $(INC) configserver.cpp
+LogHelper.o:LogHelper.cpp *.h
+	$(CC) $(INC) LogHelper.cpp
+IniHelper.o:IniHelper.cpp *.h
+	$(CC) $(INC) IniHelper.cpp
+cmdhelper.o:cmdhelper.cpp *.h
+	$(CC) $(INC) cmdhelper.cpp
+cmthread.o:cmthread.cpp *.h
+	$(CC) $(INC) cmthread.cpp
+iceutils.o:iceutils.cpp *.h
+	$(CC) $(INC) iceutils.cpp
+NetHelper.o:NetHelper.cpp *.h
+	$(CC) $(INC) NetHelper.cpp
+
+clean:
+	rm -fr *.o $(EXE)
