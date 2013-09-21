@@ -1,0 +1,60 @@
+#!/bin/bash
+#created by duanjigang@2013-09-21 <duanjigang1983@gmail.com>
+
+dstfile="/etc/yum.repos.d/RHEL.repo"
+yh=$1
+if [ -z "$yh" ]
+then
+	echo "usage:$1 domain_name"
+	exit 1
+fi
+ts=`date +"%Y-%m-%d %H:%M:%S"`
+#comment="Created by repoutils at $ts -- duanjigang1983@gmail.com"
+comment="#please do not modify anything in this file,it is protected. if there is anything you want to do with yum/rpm,.please contact with the administrator"
+
+
+function gen_repo_rhel ()
+{
+	ver=""
+	if ! [ -f "/etc/redhat-release" ]
+	then
+		return 
+	fi
+
+	rl=`cat /etc/redhat-release | awk '{a=match($0,"[5|6|4]");print substr($0,a)}' | awk '{print $1}'`
+	if ! [ -z "$rl" ]
+	then
+		main=`echo $rl | awk -F '.' '{print $1}'`
+		sub=`echo $rl | awk -F '.' '{print $2}'`
+		if [ $main -eq 4 ]
+		then
+			ver="4AS"
+		else
+			if [ -z "$sub" ]
+			then
+				ver=`echo "$main" | awk '{print$1"Server"}'`
+			else
+				ver=`echo "$main $sub" | awk '{print$1"u"$2}'`
+			fi
+		fi
+		###########################################
+		echo "$comment"
+		echo ""
+
+		echo "[redhat.$ver.base.\$basearch]"
+		echo "name=redhat"
+		echo "baseurl=http://$yh/redhat/$ver/os/\$basearch/"
+		echo "gpgcheck=0"
+
+		echo "" 
+
+		echo "[redhat.$ver.updates.\$basearch]"
+		echo "name=redhat updates"
+		echo "baseurl=http://$yh/redhat/$ver/updates/\$basearch/"
+		echo "gpgcheck=0"
+		
+	fi
+}
+gen_repo_rhel > $dstfile
+
+

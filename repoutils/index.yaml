@@ -1,0 +1,8 @@
+default:
+  name: repoutils
+  version: '1.1.0'
+  arch: noarch
+  summary: "The standard utils to automatically configure all yum config files and plugins"
+  packager: 'duanjigang'
+  group: 'cmesoft'
+  arch: 'noarch'
