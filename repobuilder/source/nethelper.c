@@ -1,68 +1,6 @@
-#include "NetHelper.h"
+#include "nethelper.h"
 #ifdef __LINUX__
 int	get_nic_list(nic_t *list)
-/*
-{ 
-	int nRet = 0;
-	typedef struct 
-	{
-		char name[30];
-		unsigned int addr;
-	}nic_name_t;
-	nic_name_t nic_list[16];
-	unsigned int nic_num = 0;
-	unsigned int index = 0;
-	const char* szfile = "/proc/net/dev";
-	FILE * fp = fopen (szfile, "r");
-	char szline[1024] = {0};
-	if (!fp) return -1;
-	
-	while (fgets(szline, 1024, fp))
-	{
-		char* pos = strchr (szline, ':');
-		char * p = szline;
-		
-		if (!pos) continue;
-		*pos = '\0';
-		while(isspace(*p) && (p != pos)) p++;
-		if (p == pos) continue;
-		if (strncmp(p, "lo", 2) == 0) continue;
-		//printf ("%s\n", p);
-		memset (nic_list + nic_num, 0, sizeof(nic_name_t));
-		strcpy(nic_list[nic_num].name, p);
-		
-		nic_num++;
-	}
-	fclose (fp);
-	
-	struct ifreq	ifr;
-	int	num;
-	num = 0;
-    	int packet_socket = socket(AF_INET, SOCK_PACKET, htons(0x3));
-    	if  (packet_socket<0)
-    	{   
-		return -1;
-   	}
-
-	for (index = 0; index < nic_num; index++)
-	{
-		//printf ("%s\n", nic_list[index].name);	
-    		char szip[20] = {0};
-		strncpy( ifr.ifr_name, nic_list[index].name, 14);
-    		int on = ioctl( packet_socket, SIOCGIFADDR, &ifr );
-		if(on == 0)
-		{
-			nic_list[index].addr = *(unsigned int *)&ifr.ifr_ifru.ifru_addr.sa_data[2];	
-			STR_IP(szip,  nic_list[index].addr);
-			list[nRet] = nic_list[index].addr;
-			nRet++;
-			//printf ("%s----%s--%u\n", nic_list[index].name, szip, nic_list[index].addr);
-		}else nic_list[index].addr = 0;
-	}
-	close (packet_socket);
-	return nRet;
-	}
-*/
 {
 	int _sock;
 	int nRet = 0;

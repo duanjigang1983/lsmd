@@ -1,7 +1,6 @@
 #include "configserver.h"
-//#include "DbMonitor.h"
-#include "IniHelper.h"
-#include "NetHelper.h"
+#include "inihelper.h"
+#include "nethelper.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 extern config_t g_config;
@@ -38,6 +37,7 @@ void InitArgs(int argc, char* argv[])
 		}
 	}
 }
+/*
 void error_info (int nError, char * szbuf)
 {
 	switch (nError)
@@ -57,42 +57,27 @@ void error_info (int nError, char * szbuf)
 				sprintf (szbuf, "unknow error value %d", nError);break;
 	}
 }
+*/
 
-void	show_app(const app_t * app)
-{
-	/*
-	unsigned int i = 0;
-	for (i = 0; i < app->app_num; i++)
-	{
-		printf ("application_%u: id=%u,md5=%s,owner=%s,conf=%s,top=%s\n",
-			i,
-			app->app_list[i].app_id,
-			app->app_list[i].md5sum,
-			app->app_list[i].owner,
-			app->app_list[i].conf,
-			app->app_list[i].top);
-	}*/
-}
-
-int app_trans_func (void*data);
+int repo_build_func (void*data);
 //delivery application to each thread
 //because there may be so many host to send a file or notify
 //a message, we just divid the host list to several group, and 
 //each group is served by a thread
 param_t g_plist[MAX_THREAD];
-app_t   g_app_list[MAX_THREAD];
+//app_t   g_app_list[MAX_THREAD];
 
-int	deliver_app_task (app_t * pa, thread_pool_t * pool, config_t * conf)
+//int	deliver_app_task (app_t * pa, thread_pool_t * pool, config_t * conf)
+int	deliver_app_task (thread_pool_t * pool, config_t * conf)
 {
 	unsigned int index = 0;	
 	
 	for (index = 0; index < pool->thread_num; index++)
 	{
-		g_plist[index].func = app_trans_func;					
+		g_plist[index].func = repo_build_func;					
 		g_plist[index].data = NULL;
 		g_plist[index].conf = conf;
 		g_plist[index].index = index+1;
-		g_plist[index].thread_num = pool->thread_num;
 		pool->thread_list[index].param = &g_plist[index];
 	}
 	//loop repo list of config
@@ -110,7 +95,7 @@ int	deliver_app_task (app_t * pa, thread_pool_t * pool, config_t * conf)
 	return 1;
 }
 
-int app_trans_func (void*data)
+int repo_build_func (void*data)
 {
 	param_t * pa = (param_t*)data;
 	repo_t * pr = NULL;
@@ -188,88 +173,6 @@ int	start_thread(thread_pool_t * pool, const config_t * conf)
 	return pool->thread_num;
 }
 
-int	show_progress (app_t* pa)
-{
-	pa->over_num = 0;	
-	char stime [32] = {0};
-	char etime [32] = {0};
-	unsigned int index = 0;
-	int over = 0;
-	dev_task_t * pdev = pa->dev_list;
-	system ("clear");
-	sprintf (stime, "%s", get_time_str(&pa->start_time));
-	sprintf (etime, "%s", get_time_str(NULL));
-	fprintf (stderr, "START TIME "GREEN"%s"NONE"\nNOW   TIME "GREEN"%s"NONE"\n", stime, etime);
-	for (index = 0; (index < pa->dev_num)&&(pdev); index++, pdev = pdev->next)
-	{
-		if (pdev->over) pa->over_num++;
-	}
-	over = pa->over_num * 100 / pa->dev_num;
-	fprintf (stderr, "PRO %d/100 [", over);
-	for (index = 0; index < 100; index++)
-	{	
-		if (over > 0)
-		{
-			if (index < over) fprintf (stderr, "%c", '-');
-			if(index == over) fprintf (stderr, "%c", '>');
-		}
-		if (index > over) fprintf (stderr, "%c", ' ');	
-	}
-	fprintf (stderr, "] %u/%u\n", pa->over_num, pa->dev_num);	
-	return pa->over_num;
-}
-int	get_result (app_t* pa, const config_t * config)
-{
-	/*
-	unsigned int index = 0;
-	int nRet =  0;
-	dev_task_t * pdev = pa->dev_list;
-	for (index = 0; (index < pa->dev_num)&&(pdev); index++, pdev = pdev->next)
-	{
-		printf ("["GREEN"%u"NONE"] ######### "YELLOW"%s"NONE" ##########\n", 
-		index + 1,  pdev->dev.host_name);
-
-		if (pdev->result != RET_SUCCESS)
-		{
-			char retmsg[128] = {0};
-			error_info (pdev->result, retmsg);
-			char szfile[128] = {0};
-			FILE * fp = 0;
-			//sprintf (szfile, "%s/%s_%u.txt", DATA_DIR, pdev->dev.host_name, pdev->dev.host_id);
-			sprintf (szfile, "%s/%s_%u.txt", config->outdir, pdev->dev.host_name, pdev->dev.host_id);
-			if ((fp = fopen (szfile, "w")) != NULL)
-			{
-				fprintf (fp, "%s\n", retmsg);
-				fclose(fp);
-			}
-			
-			//printf ("%s\n", retmsg);			
-		}
-		//else
-		if (1)
-		{
-			char szfile[128] = {0};
-			//sprintf (szfile, "%s/%s_%u.txt", DATA_DIR, pdev->dev.host_name, pdev->dev.host_id);
-			sprintf (szfile, "%s/%s_%u.txt", config->outdir, pdev->dev.host_name, pdev->dev.host_id);
-			if (access(szfile, R_OK)) printf ("read result file '%s' failed\n", szfile);
-			else
-			{
-				FILE * fp = fopen (szfile, "r");
-				if (fp)
-				{
-					char szline[1024] = {0};
-					while (fgets(szline, 1024, fp)) printf ("%s", szline);
-					fclose (fp);
-				}
-				//unlink (szfile);
-			}
-		}
-		nRet++;
-	}
-	return nRet;
-	*/
-	return 0;
-}
 
 int	init_config (config_t * config, int argc, char* argv[])
 {

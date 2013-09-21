@@ -1,19 +1,11 @@
 #ifndef _DATA_DEF_H_
 #define _DATA_DEF_H_
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "pubdef.h"
-
-typedef struct _dev_task_t
-{
-	device_t dev; //device
-	int result;
-	unsigned char	 over;
-	struct _dev_task_t * next;
-}dev_task_t;
-
 typedef int (*func_t)(void*data);
 
 typedef struct 
@@ -21,7 +13,6 @@ typedef struct
 	func_t func;
 	void* data;	
 	int index;
-	int thread_num;
 	void * conf;
 }param_t;
 
@@ -48,7 +39,6 @@ typedef struct
 {
 	thread_t thread_list[MAX_THREAD];
 	unsigned int thread_num;
-	//unsigned int run_num;//how many ought to run
 }thread_pool_t;
 
 //config information
@@ -56,7 +46,6 @@ typedef struct
 #define CMD_LEN 256
 #define THREAD_NUM 100
 #define TIMEOUT 5
-#define DFT_PORT 43698
 //#define DATA_DIR "data"
 #define MAX_REPO 100
 typedef struct _repo
@@ -79,16 +68,5 @@ typedef struct
 	repo_t			repo_list[MAX_REPO];
 	int 			repo_num;
 }config_t;
-
-
-typedef struct 
-{
-	config_t	*config;
-	time_t		start_time;
-	time_t		finish_time;
-	unsigned int	dev_num;
-	unsigned int	over_num;
-	dev_task_t	*dev_list;
-}app_t;
 
 #endif

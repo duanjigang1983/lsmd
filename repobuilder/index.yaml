@@ -8,6 +8,7 @@ default:
   group: 'cmesoft'
   packager: 'duanjigang'
   license: 'cmesoft'
+  #the multipkg do not support config file for rpm-->need update
   keepopt: 
       - %config(noreplace) /etc/repo.conf
       - %defattr(-,root,root) 
