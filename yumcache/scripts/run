@@ -1,0 +1,26 @@
+#!/bin/bash
+
+SQUID="/usr/sbin/squid"
+while true 
+do
+	tmstr=`date "+%Y-%m-%d %H:%M:%S"`
+	pid=`ps -A | grep -w squid | awk '{print $1}'`
+	if ! [ -z "$pid" ]
+	then
+		echo "$tmstr: squid already runing with pid [$pid]"
+		sleep 10
+		continue
+	fi
+	if ! [ -f "$SQUID" ]
+	then
+		echo "$tmstr:can not find file '$SQUID'"
+		sleep 30
+	fi
+	
+	tmstr=`date "+%Y-%m-%d %H:%M:%S"`
+	echo "$tmstr: starting squid now"
+	exec $SQUID -N
+	sleep 5		
+done
+
+
