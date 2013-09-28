@@ -1,0 +1,45 @@
+#!/bin/bash
+### by duanjigang@2013-09-28 18:46 <duanjigang1983@gmail.com>
+
+source /etc/buildserver.conf
+if [ $# -ne 2 ]
+then
+	echo "usage:$0 pkgname  repo<extras/develop>"
+	exit 0	
+fi
+pkgname=$1
+repo=$2
+if ! [ -d "$pkgname" ]
+then
+	echo "can not stat dir '$pkgname'"
+	exit 1
+fi
+
+function release2server()
+{
+	bserver=$1
+	myname=`/bin/hostname`
+	ts=`date +%s`
+	pid=`echo $$`
+	bname=`basename $pkgname`
+	dstdir="/tmp/multipkg-release.$myname.$pid.$ts"
+	echo "mkdir [$dstdir] on $bserver"
+	ssh  $bserver "mkdir -p $dstdir" < /dev/null
+	echo "scp -r $pkgname $bserver:$dstdir"
+	scp -r "$pkgname" $bserver:$dstdir
+	newdir="$dstdir/$bname"
+	echo  "start building package on $bserver:$newdir"
+	ssh  $bserver "/bin/pkgrelease $newdir $repo" < /dev/null
+	ssh  $bserver "rm -fr $dstdir" < /dev/null
+		
+}
+
+function release_pkg( )
+{
+	echo $server | awk -F ',' '{for(i=1;i<=NF;i++)print $i}' | while read name
+	do
+		echo "release to $name"
+		release2server $name 
+	done
+}
+release_pkg
