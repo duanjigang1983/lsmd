@@ -1,0 +1,134 @@
+#!/bin/sh
+#****************************************************************#
+# ScriptName: release.sh
+# Author: $SHTERM_REAL_USER@alibaba-inc.com
+# Create Date: 2013-09-26 06:56
+# Modify Author: $SHTERM_REAL_USER@alibaba-inc.com
+# Modify Date: 2013-09-28 16:54
+# Function: 
+#***************************************************************#
+#!/bin/bash
+source ./server.conf
+
+if [ $# -ne 2 ]
+then
+	echo "usage:$1 path repo_name"
+	exit 1
+fi
+bname=`basename $1`
+dname=`dirname $1`
+pname="$dname/$bname"
+currentdir=`pwd`
+rname=$2
+rl=""
+ar=""
+dstdir="/tmp"
+pkgname=""
+
+if [ "$rname" != "extras" ] && [ "$rname" != "develop" ]
+then
+	echo "only support repo [extras] and [develop]"
+	exit 1
+fi
+
+function get_release()
+{
+	if ! [ -f "/etc/redhat-release" ]
+	then
+		return 
+	fi
+
+	rl=`cat /etc/redhat-release | awk '{a=match($0,"[5|6|4]");print substr($0,a)}' | awk '{print $1}'`
+	if ! [ -z "$rl" ]
+	then
+		main=`echo $rl | awk -F '.' '{print $1}'`
+		sub=`echo $rl | awk -F '.' '{print $2}'`
+		echo $main
+	fi
+}
+
+function get_arch()
+{
+	res=`/bin/uname -a | grep x86_64`
+	if [ -z "$res" ]
+	then
+		echo "i386"
+	else
+		echo "x86_64"
+	fi
+}
+
+function main ()
+{
+	pid=`echo $$`
+	workdir="$dstdir/pkg-release.$pid"
+	mkdir -p "$workdir"
+	#if [ -d "lsmd" ]
+	#then
+		#ts=`date +%s`
+		#mv "lsmd" "lsmd."$ts
+	#fi
+	#git clone git@github.com:duanjigang1983/lsmd.git
+	#cd lsmd
+	#if ! [ -d "$pname" ]
+	#then
+		#echo "can not find project '$pname'"
+		#exit 1
+	#fi
+	#cd $pname
+	cp $pname $workdir -r
+	cd "$workdir/$bname"
+	#pkgname=`cat $workdir/$bname/index.yaml| grep name | awk '{print $2}'`
+	rm -fr "$workdir/$bname/*.rpm" >/dev/null
+	#rm -fr "*.rpm" >/dev/null
+	echo "making pkg for [$pname]"
+	#echo "run command:/usr/bin/multipkg $workdir/$bname"
+	#pkgname=`/usr/bin/multipkg $workdir/$bname` 
+	pkgname=`/usr/bin/multipkg .` 
+	rpmpath="$workdir/$bname/$pkgname"
+	if [ -z "$rpmpath" ]
+	then
+		echo "making rpm failed"
+		rm -fr $workdir
+		exit 1
+	else
+		echo "$rpmpath is made successfully"
+	fi
+	noarch=`echo $rpmpath | grep "noarch"`
+	if ! [ -z "$noarch" ]
+	then
+		ar="noarch"
+	fi
+	cp $rpmpath $currentdir
+	cd $currentdir
+	rm -fr $workdir
+	#echo "release pkg [$rpmpath] to yumserver [$rl,$ar,$rname]"
+	echo "release pkg [$pkgname] to yumserver [$rl,$ar,$rname]"
+	upload_pkg $pkgname $ar $rl
+	unlink $pkgname
+}
+function get_os_info()
+{
+	rl=`get_release`
+	ar=`get_arch`
+
+	if [ -z "$rl" ] || [ -z "$ar" ]
+	then
+		echo "getting release or arch information of this machine failed"
+		exit 1
+	fi
+}
+function upload_pkg( )
+{
+	pkgpath=$1
+	arch=$2
+	release=$3
+	dstpath="$uploaddir/$rname/$release/$arch"
+	#echo "run command:ssh $yumserver 'mkdir -p $dstpath'"
+	echo "mkdir [$dstpath] on $yumserver"
+	ssh $yumserver "mkdir -p $dstpath"
+	echo "upload file [$pkgpath] to $yumserver:$dstpath"
+	scp "$pkgpath" $yumserver:$dstpath
+}
+get_os_info
+main

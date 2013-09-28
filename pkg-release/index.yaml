@@ -1,0 +1,13 @@
+default:
+  name: pkgrelease
+  version: '1.1.0'
+  arch: noarch
+  summary: "smart tools to release pkg [rpm] to specified yumserver"
+  packager: 'duanjigang1983'
+  group: 'cmesoft'
+  arch: 'noarch'
+
+  keepopt: 
+      - %config(noreplace) /etc/pkgrelease.conf
+      - %defattr(-,root,root) 
+      - %attr(0777 nobody nobody) /etc/pkgrelease.conf
