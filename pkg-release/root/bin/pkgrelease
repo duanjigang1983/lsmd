@@ -1,11 +1,4 @@
 #!/bin/sh
-#****************************************************************#
-# ScriptName: release.sh
-# Author: $SHTERM_REAL_USER@alibaba-inc.com
-# Create Date: 2013-09-26 06:56
-# Modify Author: $SHTERM_REAL_USER@alibaba-inc.com
-# Modify Date: 2013-09-28 16:54
-# Function: 
 #***************************************************************#
 #!/bin/bash
 source ./server.conf
