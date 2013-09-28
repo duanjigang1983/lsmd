@@ -117,7 +117,7 @@ function upload_pkg( )
 	dstpath="$uploaddir/$rname/$release/$arch"
 	#echo "run command:ssh $yumserver 'mkdir -p $dstpath'"
 	echo "mkdir [$dstpath] on $yumserver"
-	ssh $yumserver "mkdir -p $dstpath"
+	ssh $yumserver "mkdir -p $dstpath" < /dev/null
 	echo "upload file [$pkgpath] to $yumserver:$dstpath"
 	scp "$pkgpath" $yumserver:$dstpath
 }
