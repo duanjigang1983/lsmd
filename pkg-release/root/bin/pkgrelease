@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./server.conf
+source /etc/pkgrelease.conf
 
 if [ $# -ne 2 ]
 then
