@@ -1,6 +1,7 @@
 default:
   name: pkgrelease
   version: '1.1.0'
+  release: '1'
   arch: noarch
   summary: "smart tools to release pkg [rpm] to specified yumserver"
   packager: 'duanjigang1983'

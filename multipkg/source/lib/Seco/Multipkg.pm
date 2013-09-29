@@ -179,6 +179,8 @@ sub setrelease {
   # Use "0.time()" as release version to avoid ever conflicting with an actual
   # build from source checkout
   $self->info->data->{release} = sprintf "0.%u", time()
+  #duanjigang1983@gmail.com
+  #$self->info->data->{release} = sprintf "11.%u", time()
     unless ( defined $self->info->data->{release} );
 }
 

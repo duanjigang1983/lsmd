@@ -3,6 +3,7 @@ default:
   requires:
     - rsync >= 3.0.6
   version: '1.0.0'
+  release: '1'
   packager: 'duanjigang'
   summary: 'yum tools for yum mirror server'
   group: 'cmesoft'
