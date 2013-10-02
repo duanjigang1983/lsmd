@@ -28,6 +28,7 @@ def load_conf():
     except:
         dbname1="lsmd"
     try:
+        global tbname
         tbname = config.get("main","tablename")
         #print value
     except:
@@ -38,15 +39,18 @@ def load_conf():
         #print value
     except:
         sdir="/opt"
+    global dbname
     dbname=sdir+"/"+dbname1
 
     try:
+        global basedir
         basedir = config.get("main","upload")
         #print value
     except:
         print "can not find [upload] in [main] of file '%s'" % (conf)
         return 0
     try:
+        global onlinedir
         onlinedir = config.get("main","online")
         #print value
     except:
