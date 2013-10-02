@@ -1,0 +1,201 @@
+#!/usr/bin/python
+# coding=utf-8
+## created by duanjigang <duanjigang1983@gmail.com> 2013-10-02 13:20
+# need support for pysqlite,install steps:
+#(1) wget http://pysqlite.googlecode.com/files/pysqlite-2.6.3.tar.gz
+#(2) tar -zxvf /pysqlite-2.6.3.tar.gz
+#(3) cd pysqlite-2.6.3
+#(4) python setup.py install
+#(5) everything ok, just 'import sqlite3' in your py scripts
+import sys, os, rpm,sqlite3,time,ConfigParser
+
+conf="/etc/pkgaudit.conf"
+
+dbname=""
+tbname=""
+basedir=""
+onlinedir=""
+
+def load_conf():
+    if not os.path.isfile(conf):
+        return 0
+    storedir=""
+    config = ConfigParser.SafeConfigParser()
+    config.read(conf)
+    try:
+        dbname1 = config.get("main","dbname")
+        #print value
+    except:
+        dbname1="lsmd"
+    try:
+        tbname = config.get("main","tablename")
+        #print value
+    except:
+        tbname="lsmd"
+
+    try:
+        sdir = config.get("main","storedir")
+        #print value
+    except:
+        sdir="/opt"
+    dbname=sdir+"/"+dbname1
+
+    try:
+        basedir = config.get("main","upload")
+        #print value
+    except:
+        print "can not find [upload] in [main] of file '%s'" % (conf)
+        return 0
+    try:
+        onlinedir = config.get("main","online")
+        #print value
+    except:
+        print "can not find [online] in [main] of file '%s'" % (conf)
+        return 0
+    #######################################################
+    print "%s\n%s\n%s\n%s\n" % (dbname, tbname,basedir,onlinedir)
+    return 1
+
+def add_rpm(rpmname):
+    ri = get_rpm_info(rpmname)
+    tmp=rpmname[rpmname.find(basedir) + len(basedir)+1:]
+    dstdir=os.path.dirname(onlinedir+"/"+tmp)
+    dstfile=onlinedir+"/"+tmp
+    #print "dstdir:%s" % (dstdir)
+    repo=tmp[0:tmp.find('/')]
+    tmp1=tmp[tmp.find('/')+1:]
+    osv=int(tmp1[0:tmp1.find('/')])
+    sqlinsert="insert into %s (name,version,release,packager,groupname,arch,osversion,repo,storepath)values('%s','%s', '%s', '%s','%s', '%s', %d, '%s', '%s');" % (tbname,\
+            ri['name'], ri['ver'], ri['rl'], ri['packager'], ri['group'], ri['arch'], osv, repo, dstfile)
+    try:
+        cx = sqlite3.connect(dbname)  
+    except sqlite3.Error,e:
+        print "connect db %s failed" % (dbname)
+        return "NONE"
+    cu=cx.cursor() 
+    try:
+        #cu.execute("create table %s ( id integer primary key, pid integer, name varchar(10) UNIQUE )" % (tbname))
+        sql="create table %s ( id integer primary key, name varchar(64), version varchar(10),release varchar(10),packager varchar(64), groupname varchar(64),arch varchar(10),osversion integer,repo varchar(64), storepath varchar(128))" % (tbname)
+        #print sql
+        cu.execute(sql)
+    except sqlite3.Error,e:
+       pass 
+   
+        #print "tables [%s] already exists" % (tbname)
+    ##check whether this rpm has already been released
+    cu.execute("select count(*) as num from %s where name = '%s' and version = '%s' and release = '%s' and repo = '%s' and osversion = %d limit 1;" % (tbname, ri['name'], ri['ver'], ri['rl'],repo,osv))   
+    res = cu.fetchone()[0] 
+    #if res!=None:
+    if res>0:
+        print "%s: found same package [%s-%s-%s] for %s record(s),ignore this one" % (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())), ri['name'], ri['ver'], ri['rl'], res)
+        os.remove (rpmname)
+        return "NONE"
+    else:
+        print "can not found [%s-%s-%s],just insert new records" % (ri['name'], ri['ver'], ri['rl'])
+    ##check whether repo is ok
+    cu.execute("select repo from %s where name = '%s' limit 1;" % (tbname, ri['name']))   
+    res = cu.fetchone()
+    if res!=None:
+        if res[0]!=repo:
+            print "%s: package [%s-%s-%s] ought to be released to repo '%s' but not '%s',just ignore this one" %\
+                    (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())),ri['name'], ri['ver'], ri['rl'], res[0],repo)
+            os.remove(rpmname)
+            return "NONE"
+    if not os.path.isdir(dstdir):
+        os.makedirs(dstdir)
+
+    ## test directory
+    if not os.path.isdir(dstdir):
+        print "create dir [%s] failed" % (dstdir)
+        return 'NONE'
+    os.rename(rpmname, dstfile)
+
+    ##test file
+    if not os.path.isfile(dstfile):
+        print "rename file [%s] to [%s] failed" % (rpmname, dstfile)
+        return 'NONE'
+    print "%s: insert new record for package [%s-%s-%s]" %\
+            (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())),ri['name'], ri['ver'], ri['rl'])
+    cu.execute(sqlinsert)   
+    #cu.execute("insert into %s (pid, name)values(0, 'hello')" % (tbname))   
+    cx.commit()
+    #cu.execute("select * from %s" % (tbname))   
+    #print cu.fetchall() 
+        #cu.execute("update %s set name='name2' where id = 0" % (tbname))   
+    #cx.commit()   
+    #cu.execute("select * from %s" % (tbname))   
+    #print cu.fetchone()  
+    #cu.execute("delete from %s where id = 1" % (tbname))   
+    #cx.commit()   
+    #cu.execute("select * from %s" % (tbname))   
+    #cu.fetchall()   
+    cu.close() 
+    cx.close()                                                                                                                           
+    return dstfile
+def get_rpm_info(rpm_file):
+    """Returns rpm information by querying a rpm"""
+    ts = rpm.ts()
+    fdno = os.open(rpm_file, os.O_RDONLY)
+    try:
+        hdr = ts.hdrFromFdno(fdno)
+    except rpm.error:
+        fdno = os.open(rpm_file, os.O_RDONLY)
+        ts.setVSFlags(rpm._RPMVSF_NOSIGNATURES)
+        hdr = ts.hdrFromFdno(fdno)
+    os.close(fdno)
+    return { 'name': hdr[rpm.RPMTAG_NAME], 'ver' : "%s" % (hdr[rpm.RPMTAG_VERSION]), 'rl' : "%s" % (hdr[rpm.RPMTAG_RELEASE]), 'epoch': hdr[rpm.RPMTAG_EPOCH],\
+    'arch': hdr[rpm.RPMTAG_ARCH],'packager': hdr[rpm.RPMTAG_PACKAGER],\
+    'group': hdr[rpm.RPMTAG_GROUP],'size': hdr[rpm.RPMTAG_SIZE]}
+    #'group': hdr[rpm.RPMTAG_GROUP],'size': hdr[rpm.RPMTAG_SIZE],'os': hdr[rpm.RPMTAG_POSTIN] }
+
+
+def release_new_rpms(rootDir):
+    #num=0
+    ret=set()
+    for root,dirs,files in os.walk(rootDir):
+        for filespath in files:
+            filename=os.path.join(root,filespath)
+            name, ext = os.path.splitext(filename)
+            if ext==".rpm":
+                #mtime = time.ctime(os.path.getmtime(filename))
+                mtime = os.path.getmtime(filename)
+                diff_time = time.time() - mtime
+                if diff_time > 10:
+                    #num=num+1
+                    print "%s: File [%s] last modify [%d]-[%d]" %\
+                            (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())),filename,mtime,time.time())
+                    dstfile=add_rpm (filename)
+                    if dstfile!="NONE":
+                        ret.add(os.path.dirname(dstfile))
+    #return num
+    return ret
+
+                                                                                                                               
+if __name__ == '__main__':
+    if load_conf () <= 0:
+        sys.exit()
+        
+    #sqlite_example()
+    while 1:
+        intv=10
+        ret=release_new_rpms(basedir)
+        if len(ret) > 0:
+            intv=5
+        for dirs in ret:
+            sigfile=dirs+"/update.txt"
+            fd=open(sigfile, 'w')
+            fd.close()
+            print "%s: Creating signal file for dir [%s]" % (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())), dirs)
+        ret.clear()
+        #if num > 0:
+         #   intv=5
+        print "sleeping for [%d] second(s)" % (intv)
+        time.sleep(intv)
+
+    #blob = sys.argv[1]
+    #add_rpm(blob)
+    #rpm_info = get_rpm_info(blob)
+    #print "==%s==" % (rpm_info['name'])
+    #for key in rpm_info:
+    #    print '%s:%s' % (key.ljust(11), rpm_info[key])
+
