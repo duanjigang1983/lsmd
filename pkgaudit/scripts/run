@@ -7,14 +7,29 @@
 #(3) cd pysqlite-2.6.3
 #(4) python setup.py install
 #(5) everything ok, just 'import sqlite3' in your py scripts
-import sys, os, rpm,sqlite3,time,ConfigParser
+import sys, os, rpm,sqlite3,time,ConfigParser,logging,logging.handlers
 
 conf="/etc/pkgaudit.conf"
+logfile="/usr/local/pkgaudit/log/pkgaudit.log"
 
 dbname=""
 tbname=""
 basedir=""
 onlinedir=""
+######## start for logger
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+rh=logging.handlers.TimedRotatingFileHandler(logfile,'D')
+fm=logging.Formatter("%(asctime)s  %(levelname)s - %(message)s","%Y-%m-%d %H:%M:%S")
+rh.setFormatter(fm)
+logger.addHandler(rh)
+debug=logger.debug
+info=logger.info
+warn=logger.warn
+error=logger.error
+critical=logger.critical
+################## end for logger
 
 def load_conf():
     if not os.path.isfile(conf):
@@ -61,6 +76,9 @@ def load_conf():
     return 1
 
 def add_rpm(rpmname):
+    global info
+    global warn
+    global error
     ri = get_rpm_info(rpmname)
     tmp=rpmname[rpmname.find(basedir) + len(basedir)+1:]
     dstdir=os.path.dirname(onlinedir+"/"+tmp)
@@ -74,7 +92,7 @@ def add_rpm(rpmname):
     try:
         cx = sqlite3.connect(dbname)  
     except sqlite3.Error,e:
-        print "connect db %s failed" % (dbname)
+        error("connect db %s failed" % (dbname))
         return "NONE"
     cu=cx.cursor() 
     try:
@@ -91,18 +109,20 @@ def add_rpm(rpmname):
     res = cu.fetchone()[0] 
     #if res!=None:
     if res>0:
-        print "%s: found same package [%s-%s-%s] for %s record(s),ignore this one" % (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())), ri['name'], ri['ver'], ri['rl'], res)
+        #warn("%s: found same package [%s-%s-%s] for %s record(s),ignore this one" % (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())), ri['name'], ri['ver'], ri['rl'], res))
+        warn("Found same package [%s-%s-%s] for %s record(s),ignore this one" % (ri['name'], ri['ver'], ri['rl'], res))
         os.remove (rpmname)
         return "NONE"
-    else:
-        print "can not found [%s-%s-%s],just insert new records" % (ri['name'], ri['ver'], ri['rl'])
+    #else:
+		#info("Can not found [%s-%s-%s],just insert new records" % (ri['name'], ri['ver'], ri['rl']))
     ##check whether repo is ok
     cu.execute("select repo from %s where name = '%s' limit 1;" % (tbname, ri['name']))   
     res = cu.fetchone()
     if res!=None:
         if res[0]!=repo:
-            print "%s: package [%s-%s-%s] ought to be released to repo '%s' but not '%s',just ignore this one" %\
-                    (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())),ri['name'], ri['ver'], ri['rl'], res[0],repo)
+            #info("%s: package [%s-%s-%s] ought to be released to repo '%s' but not '%s',just ignore this one" %\
+            info("Package [%s-%s-%s] ought to be released to repo '%s' but not '%s',just ignore this one" %\
+                    (ri['name'], ri['ver'], ri['rl'], res[0], repo))
             os.remove(rpmname)
             return "NONE"
     if not os.path.isdir(dstdir):
@@ -110,16 +130,16 @@ def add_rpm(rpmname):
 
     ## test directory
     if not os.path.isdir(dstdir):
-        print "create dir [%s] failed" % (dstdir)
+        error("create dir [%s] failed" % (dstdir))
         return 'NONE'
     os.rename(rpmname, dstfile)
 
     ##test file
     if not os.path.isfile(dstfile):
-        print "rename file [%s] to [%s] failed" % (rpmname, dstfile)
+        error("rename file [%s] to [%s] failed" % (rpmname, dstfile))
         return 'NONE'
-    print "%s: insert new record for package [%s-%s-%s]" %\
-            (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())),ri['name'], ri['ver'], ri['rl'])
+    info("Insert new record for package [%s-%s-%s]" % (ri['ver'], ri['rl']))
+            #(time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())),ri['name'], ri['ver'], ri['rl']))
     cu.execute(sqlinsert)   
     #cu.execute("insert into %s (pid, name)values(0, 'hello')" % (tbname))   
     cx.commit()
@@ -166,8 +186,7 @@ def release_new_rpms(rootDir):
                 diff_time = time.time() - mtime
                 if diff_time > 10:
                     #num=num+1
-                    print "%s: File [%s] last modify [%d]-[%d]" %\
-                            (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())),filename,mtime,time.time())
+                    info ("File [%s] last modify [%d]-[%d]" % (filename,mtime,time.time()))
                     dstfile=add_rpm (filename)
                     if dstfile!="NONE":
                         ret.add(os.path.dirname(dstfile))
@@ -176,9 +195,12 @@ def release_new_rpms(rootDir):
 
                                                                                                                                
 if __name__ == '__main__':
+    
     if load_conf () <= 0:
         sys.exit()
-        
+    global info
+    global warn
+    global error
     #sqlite_example()
     while 1:
         intv=10
@@ -189,7 +211,7 @@ if __name__ == '__main__':
             sigfile=dirs+"/update.txt"
             fd=open(sigfile, 'w')
             fd.close()
-            print "%s: Creating signal file for dir [%s]" % (time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())), dirs)
+            info("Creating signal file for dir [%s]" % (dirs))
         ret.clear()
         #if num > 0:
          #   intv=5
