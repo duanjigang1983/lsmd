@@ -138,7 +138,7 @@ def add_rpm(rpmname):
     if not os.path.isfile(dstfile):
         error("rename file [%s] to [%s] failed" % (rpmname, dstfile))
         return 'NONE'
-    info("Insert new record for package [%s-%s-%s]" % (ri['ver'], ri['rl']))
+    info("Insert new record for package [%s-%s-%s]" % (ri['name'], ri['ver'], ri['rl']))
             #(time.strftime( '%Y-%m-%d %H:%M:%S', time.localtime(time.time())),ri['name'], ri['ver'], ri['rl']))
     cu.execute(sqlinsert)   
     #cu.execute("insert into %s (pid, name)values(0, 'hello')" % (tbname))   

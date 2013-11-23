@@ -1,7 +1,7 @@
 default:
   name: pkgaudit
   version: '1.0.0'
-  release: '2'
+  release: '3'
   packager: 'duanjigang'
   summary: 'tools to audit upload rpms and move them to online dir,updating reposity'
   group: 'cmesoft'
