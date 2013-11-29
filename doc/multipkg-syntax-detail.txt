@@ -1,0 +1,143 @@
+
+multipkg syntax and usage  detail
+
+
+(1): rpm中包含空目录
+
+为了在rpm包中自带一个空目录，你需要在Spec文件中通过这样的语法：
+
+%dir dirname
+
+告知rpmbuild,这个目录需要保留在rpm文件中，而在multipkg中，spec文件被封装起来了，如果要在rpm中自带空目录
+
+该怎么办呢？
+
+在multipkg中，是通过目录中的 “.keep”文件来实现的。
+
+比如：
+
+root/
+├── etc
+│   ├── pkgaudit.conf
+│   └── test.conf
+├── usr
+│   └── local
+│       └── pkgaudit
+│           ├── data
+│           │   └── readme.txt
+│           └── log
+│               └── readme
+└── var
+
+目录 var 是一个空目录，直接multipkg得到的rpm,通过 rpm -qpl xxx.rpm
+
+看到的输出列表中，不包含 "/var"这个目录，如果 :
+
+touch root/var/.keep
+
+后，再次multipkg生成rpm后就能看到这个目录。
+
+这个功能在multipkg的源码中的代码段是：
+
+文件 multipkg/source/lib/Seco/Multipkg.pm
+
+的 902行：‘
+
+902     if ( -d _ ) {
+ 903       print $f $rpmattr . "\%dir /$_\n" if ( -e "$path/.keep" );
+ 904     }
+ 905     else {
+ 906       print $f $rpmattr . "/$_\n";
+ 907     }
+ 908   }
+
+如果是一个目录，并且其中包含了 ".keep "文件，就增加 “%dir” 语法到Spec中。
+
+(2): require
+
+依赖包的问题，直接在 index.yaml中编写就行，比如：
+
+ arch: noarch
+    provides: 
+        - Seco::Multipkg 
+        - perl-seco-class 
+        - perl-seco-cpan 
+    requires: 
+        - perl-YAML-Syck 
+        - subversion-perl 
+        - perl-Git 
+        - perl-Error
+
+这样的写法,当然 conflicts,provides,requires和obsoletes 都支持如此写法。
+
+(3) 关于配置文件以及属性
+
+configfile 在multipkg中已经进行了支持，只不过原作者并未提供例子，在对代码进行分析后，我们得到了配置文件的书写语法。
+
+如果在index.yaml中不添加files:这一项的话，所有安装的文件，multipkg都会把其添加到files列表中，默认属性是 :
+
+%default(-,root,root)
+
+比如，一个工程中，multipkg生成的spec文件如下：
+
+%files
+%defattr(-,root,root)
+/usr/local/pkgaudit/log/readme
+/usr/local/pkgaudit/data/readme.txt
+/etc/pkgaudit.conf
+
+/etc/test.conf
+/etc/service/pkgaudit/run
+/etc/service/pkgaudit/log/run
+%dir /var
+
+这时，/etc/test.conf 和 /etc/pkgaudit.conf 并不是conf 文件，因此通过：
+
+rpm -qp xxx.rpm --configfiles 
+
+看不到任何配置文件输出。
+
+这时，如果要把 /etc/test.conf 和 /etc/pkgaudit.conf 加入到配置文件列表中，就需要在 index.yaml中增加files:项了，格式如下：
+
+files:
+    - "/etc/test.conf": 
+        group: "bobody"
+        perm: "0666"
+        config: "yes"
+        owner: "root"
+    - "/etc/pkgaudit.conf": 
+         group: "root"
+        perm: "0777"
+        config: "yes"
+        owner: "jigang.djg"
+
+可以看到，files 中包含了两个文件 /etc/test.conf 和 /etc/pkgaudit.conf 
+
+其perm,owner和group在安装后会如配置中填写的一样，如果你只是想设置某个文件的属性，而不想将其配置为config（也就是说在
+
+包升级或者卸载时老的配置文件会保留），你可以删除 config: "yes"这项，比如，去除/etc/test.conf的config: "yes"项，
+
+再次通过 --configfiles 查看rpm包时，就看不到/etc/test.conf这个配置文件了。但是，有一点要注意，attributes 还会继续生效：
+
+ls -alt /etc/test.conf
+-rw-rw-rw- 1 root root 53 Nov 29 15:08 /etc/test.conf
+
+能够看到，/etc/test.conf 看到的 属性为 (0666, root,root).
+
+另外，config 类型的文件已经默认有了 noreplace 属性了，不需要再在spec中或者 index.yaml 文件中添加。
+
+它的原则是：
+
+(1) 升级/安装时，如果老的配置文件不存在或者无修改，则生成新的配置文件，或者替换老的配置文件。
+
+(2) 升级时，如果老的配置文件有改动，而新包中的配置文件和老包中自带的配置一样的话，使用老的修改了的配置文件，不安装新包中的配置文件，
+
+而且 rpm -qf 查询时，老的配置文件属于新版本的rpm包。
+
+(3) 升级时，如果配置文件有更新，而老的配置文件又被修改了，那么老的修改的配置文件会被rename为 “配置文件名称.save”以做保存。
+
+(4)卸载时，配置文件保存为 “配置文件名.save”,不做删除。
+
+duanjigang <duanjigang1983@gmail.com, cmesoft@126.com>
+
+---2013-11-29 To be continue..
