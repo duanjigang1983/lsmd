@@ -1,9 +1,23 @@
 default:
   name: repoutils
   version: '1.1.0'
-  release: '1'
+  release: '2'
   arch: noarch
   summary: "The standard utils to automatically configure all yum config files and plugins"
   packager: 'duanjigang'
   group: 'cmesoft'
   arch: 'noarch'
+  files:
+    - "/etc/yum/pluginconf.d/stage.conf": 
+        group: "root"
+        perm:  "0666"
+        owner: "root"
+        config: "yes"
+    - "/usr/local/repoutils/conf/repoutils.conf": 
+        group: "root"
+        perm:  "0666"
+        owner: "root"
+        config: "yes"
+  
+
+
