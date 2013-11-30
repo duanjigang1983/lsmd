@@ -1,13 +1,16 @@
 default:
   name: pkgaudit
   version: '1.0.0'
-  release: '3'
+  release: '4'
   packager: 'duanjigang'
   summary: 'tools to audit upload rpms and move them to online dir,updating reposity'
   group: 'cmesoft'
   license: 'cmesoft'
   arch: 'noarch'
-  keepopt: 
-      - %config(noreplace) /etc/pkgaudit.conf
-      - %defattr(-,root,root) 
-      - %attr(0777 nobody nobody) /etc/pkgaudit.conf
+  files:
+    - "/etc/pkgaudit.conf": 
+        group: "root"
+        perm:  "0666"
+        owner: "root"
+        config: "yes"
+
