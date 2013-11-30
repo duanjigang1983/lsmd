@@ -4,12 +4,15 @@ default:
   requires:
     - rsync >= 3.0.6
   version: '1.0.0'
-  release: '1'
+  release: '2'
   packager: 'duanjigang'
   summary: 'yum tools for yum mirror server'
   group: 'cmesoft'
   license: 'cmesoft'
-  keepopt: 
-      - %config(noreplace) /etc/yumclone.conf
-      - %defattr(-,root,root) 
-      - %attr(0777 nobody nobody) /etc/yumclone.conf
+  files:
+    - "/etc/yumclone.conf": 
+        group: "root"
+        perm:  "0666"
+        owner: "root"
+        config: "yes"
+
