@@ -1,0 +1,12 @@
+#!/bin/bash
+### by duanjigang at 2013-11-30 
+EXE="/usr/bin/tskeeper"
+while true
+do
+	echo "`date`: starting  tskeeper now..."
+	if [ -f "$EXE" ]
+	then
+		$EXE
+	fi
+	sleep 5
+done	

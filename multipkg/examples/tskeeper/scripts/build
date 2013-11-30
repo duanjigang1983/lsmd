@@ -1,0 +1,4 @@
+#!/bin/sh
+make  || exit 1
+mkdir -p $DESTDIR/usr/bin/
+install tskeeper $DESTDIR/usr/bin/

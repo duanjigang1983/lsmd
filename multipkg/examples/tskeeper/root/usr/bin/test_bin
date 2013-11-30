@@ -1,0 +1,4 @@
+#!/bin/bash
+#added by duanjigang@2013-11-30 <duanjigang1983@gmail.com,cmesoft@126.com>
+echo "This is a test shell program by duanjigang <duanjigang1983@gmail.com> at 2013-11-30"
+

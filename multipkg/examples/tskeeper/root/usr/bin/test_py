@@ -1,0 +1,6 @@
+#!/usr/bin/python
+# coding=utf-8
+
+import sys
+
+print "This is a test python program by duanjigang <duanjigang1983@gmail.com> at 2013-11-30 11:45"
