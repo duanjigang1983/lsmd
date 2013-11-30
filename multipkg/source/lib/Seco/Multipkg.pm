@@ -974,6 +974,14 @@ sub get_rpm_file_attributes {
   if ( exists( $attr->{config} ) ) {
     push @rpmattrs, '%config';
   }
+  #######added by duanjigang for docfiles support in multipkg @2013-11-30 --start 
+ else
+  {
+  	if ( exists ($attr->{doc} )){
+    	push @rpmattrs, '%doc';
+	  }
+  }
+  #######added by duanjigang for docfiles support in multipkg @2013-11-30 --finish
   if ( exists( $attr->{owner} ) || exists( $attr->{group} ) || exists( $attr->{perm} ) ) {
     my $mode  = ( exists( $attr->{perm} ) )  ? "$attr->{perm}" : '-';
     my $user  = ( exists( $attr->{owner} ) ) ? $attr->{owner}  : 'root';

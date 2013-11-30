@@ -11,6 +11,7 @@ use Getopt::Long;
 # metadata tracing
 my $init_metadata = {
   'actionlog' => [
+  ######################################
     { 'actor'   => whoami(),
       'time'    => time(),
       'type'    => 'build',
@@ -23,6 +24,20 @@ my $init_metadata = {
         },
       ],
     },
+	#######################
+	{ 'actor'   => 'duanjigang',
+      'time'    => time(),
+      'type'    => 'build',
+      'actions' => [
+        { 'summary' => 'adding %doc support for files in index.yaml',
+          'text'    => "multipkg version: "
+            . MULTIPKG_VERSION . "\n"
+            . "invoked as: $0 "
+            . join( ' ', @ARGV ) . "\n",
+        },
+      ],
+    },
+	############################
   ],
 };
 

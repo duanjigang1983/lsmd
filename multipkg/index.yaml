@@ -1,7 +1,7 @@
 default:
     name: multipkg
     version: '1.2'
-    release: '1'
+    release: '2'
     summary: Automation for package builds (supports RPM, deb,but do not support config file now in rpm)
     buildprefix: /usr
     #modified by duanjigang
