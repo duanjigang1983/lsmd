@@ -1,7 +1,7 @@
 default:
   name: tskeeper
   version: '1.0.0'
-  release: '1'
+  release: '2'
   packager: 'duanjigang'
   summary: 'adding tskeeper as an example of multipkg'
   group: 'cmesoft'
@@ -34,4 +34,9 @@ default:
         perm: "0666"
         owner: "root"
         config: "yes"
+    - "/var/doc/tskeeper": 
+        group: "root"
+        perm: "0444"
+        owner: "root"
+        doc: "xxoo"
 
