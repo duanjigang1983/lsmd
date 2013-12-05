@@ -1,7 +1,7 @@
 default:
   name: repoutils
   version: '1.1.0'
-  release: '4'
+  release: '5'
   arch: noarch
   summary: "The standard utils to automatically configure all yum config files and plugins"
   packager: 'duanjigang'

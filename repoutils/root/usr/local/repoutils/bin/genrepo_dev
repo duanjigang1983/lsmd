@@ -6,7 +6,7 @@ branch="stable test"
 dstfile="/etc/yum.repos.d/develop.repo"
 yh=""
 company=""
-reponame=""
+reponame="develop"
 ts=`date +"%Y-%m-%d %H:%M:%S"`
 comment="Created by repoutils at $ts -- duanjigang1983@gmail.com"
 
@@ -40,8 +40,9 @@ function gen_repo_dev ()
 	#stable  test	
 	for branch_v in $branch
 	do
-		section="[$company.$rl.$arch_v.$branch_v]"
-		name="$company Packages - For Develop - $arch_v - $branch_v Branch"
+		#section="[$company.$rl.$arch_v.$branch_v]"
+		section="[$reponame.$rl.$arch_v.$branch_v]"
+		name="$reponame Packages - For Develop - $arch_v - $branch_v Branch"
 		url="$yh/develop/${rl}/${arch_v}/${branch_v}"
 		gpgkey="$yh/develop/RPM-GPG-KEY-$company"
 		
