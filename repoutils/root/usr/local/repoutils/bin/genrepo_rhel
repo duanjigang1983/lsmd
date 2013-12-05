@@ -47,6 +47,7 @@ function gen_repo_rhel ()
 		echo "gpgcheck=0"
 
 		echo "" 
+		echo "" 
 
 		echo "[redhat.$ver.updates.\$basearch]"
 		echo "name=redhat updates"

@@ -16,7 +16,7 @@ function get_release_r()
         if  [ -f "/etc/redhat-release" ]
         then
                 a=`cat /etc/redhat-release | awk '{a=match($0,"[5|6|4]");print substr($0,a)}' | awk '{print substr($1,1,1)}'`
-                echo $a
+                echo "$a"Server
         fi
 }
 function is_x86_64 ()
@@ -41,7 +41,7 @@ function gen_repo_dev ()
 	for branch_v in $branch
 	do
 		section="[$company.$rl.$arch_v.$branch_v]"
-		name="$company Packages - For RHEL - $arch_v - $branch_v Branch"
+		name="$company Packages - For Develop - $arch_v - $branch_v Branch"
 		url="$yh/develop/${rl}/${arch_v}/${branch_v}"
 		gpgkey="$yh/develop/RPM-GPG-KEY-$company"
 		

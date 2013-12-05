@@ -82,12 +82,12 @@ def getRhelRelease():
     if rf:
         r = rf.readline().split(' ')
         if r[6] == '4':
-            maj = '4'
+            maj = '4AS'
             minor = r[9][0]
             return maj, minor
-        elif r[6][0] == '5':
+        elif r[6][0] == '5Sever':
             return r[6].split('.')
-        elif r[6][0] == '6':
+        elif r[6][0] == '6Server':
             return r[6].split('.')
         else:
             return False
