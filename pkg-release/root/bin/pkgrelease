@@ -34,7 +34,7 @@ function get_release()
 	then
 		main=`echo $rl | awk -F '.' '{print $1}'`
 		sub=`echo $rl | awk -F '.' '{print $2}'`
-		echo $main
+		echo "$main"Server
 	fi
 }
 
@@ -114,7 +114,12 @@ function upload_pkg( )
 	pkgpath=$1
 	arch=$2
 	release=$3
-	dstpath="$uploaddir/$rname/$release/$arch"
+	if [ "$rname" == "develop" ]
+	then
+		dstpath="$uploaddir/$rname/$release/$arch/test"
+	else
+		dstpath="$uploaddir/$rname/$release/$arch"
+	fi
 	#echo "run command:ssh $yumserver 'mkdir -p $dstpath'"
 	echo "mkdir [$dstpath] on $yumserver"
 	ssh $yumserver "mkdir -p $dstpath" < /dev/null
