@@ -60,6 +60,7 @@ def prereposetup_hook(conduit):
     # Display the options from the [main] section
     basearch = rpmUtils.arch.getBaseArch()
     releasemaj, releaseminor = getRhelRelease()
+    releasemaj = releasemaj + "Server" 
     if opts.stage == 'test':
         repos.enableRepo('develop.' + releasemaj + '.' + basearch + '.test')
         repos.enableRepo('develop.' + releasemaj + '.' + basearch + '.stable')

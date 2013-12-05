@@ -43,7 +43,7 @@ function gen_repo_rhel ()
 
 		echo "[redhat.$ver.base.\$basearch]"
 		echo "name=redhat"
-		echo "baseurl=http://$yh/redhat/$ver/os/\$basearch/"
+		echo "baseurl=$yh/redhat/$ver/os/\$basearch/"
 		echo "gpgcheck=0"
 
 		echo "" 
@@ -51,7 +51,7 @@ function gen_repo_rhel ()
 
 		echo "[redhat.$ver.updates.\$basearch]"
 		echo "name=redhat updates"
-		echo "baseurl=http://$yh/redhat/$ver/updates/\$basearch/"
+		echo "baseurl=$yh/redhat/$ver/updates/\$basearch/"
 		echo "gpgcheck=0"
 		
 	fi
