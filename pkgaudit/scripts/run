@@ -86,8 +86,10 @@ def add_rpm(rpmname):
     #print "dstdir:%s" % (dstdir)
     repo=tmp[0:tmp.find('/')]
     tmp1=tmp[tmp.find('/')+1:]
-    osv=int(tmp1[0:tmp1.find('/')])
-    sqlinsert="insert into %s (name,version,release,packager,groupname,arch,osversion,repo,storepath)values('%s','%s', '%s', '%s','%s', '%s', %d, '%s', '%s');" % (tbname,\
+    #osv=int(tmp1[0:tmp1.find('/')])
+    osv=tmp1[0:tmp1.find('/')]
+    #sqlinsert="insert into %s (name,version,release,packager,groupname,arch,osversion,repo,storepath)values('%s','%s', '%s', '%s','%s', '%s', %d, '%s', '%s');" % (tbname,\
+    sqlinsert="insert into %s (name,version,release,packager,groupname,arch,osversion,repo,storepath)values('%s','%s', '%s', '%s','%s', '%s', %s, '%s', '%s');" % (tbname,\
             ri['name'], ri['ver'], ri['rl'], ri['packager'], ri['group'], ri['arch'], osv, repo, dstfile)
     try:
         cx = sqlite3.connect(dbname)  
@@ -97,7 +99,8 @@ def add_rpm(rpmname):
     cu=cx.cursor() 
     try:
         #cu.execute("create table %s ( id integer primary key, pid integer, name varchar(10) UNIQUE )" % (tbname))
-        sql="create table %s ( id integer primary key, name varchar(64), version varchar(10),release varchar(10),packager varchar(64), groupname varchar(64),arch varchar(10),osversion integer,repo varchar(64), storepath varchar(128))" % (tbname)
+        #sql="create table %s ( id integer primary key, name varchar(64), version varchar(10),release varchar(10),packager varchar(64), groupname varchar(64),arch varchar(10),osversion integer,repo varchar(64), storepath varchar(128))" % (tbname)
+        sql="create table %s ( id integer primary key, name varchar(64), version varchar(10),release varchar(10),packager varchar(64), groupname varchar(64),arch varchar(10),osversion varchar(20),repo varchar(64), storepath varchar(128))" % (tbname)
         #print sql
         cu.execute(sql)
     except sqlite3.Error,e:
@@ -105,7 +108,8 @@ def add_rpm(rpmname):
    
         #print "tables [%s] already exists" % (tbname)
     ##check whether this rpm has already been released
-    cu.execute("select count(*) as num from %s where name = '%s' and version = '%s' and release = '%s' and repo = '%s' and osversion = %d limit 1;" % (tbname, ri['name'], ri['ver'], ri['rl'],repo,osv))   
+    #cu.execute("select count(*) as num from %s where name = '%s' and version = '%s' and release = '%s' and repo = '%s' and osversion = %d limit 1;" % (tbname, ri['name'], ri['ver'], ri['rl'],repo,osv))   
+    cu.execute("select count(*) as num from %s where name = '%s' and version = '%s' and release = '%s' and repo = '%s' and osversion = '%s' limit 1;" % (tbname, ri['name'], ri['ver'], ri['rl'],repo, osv))   
     res = cu.fetchone()[0] 
     #if res!=None:
     if res>0:
