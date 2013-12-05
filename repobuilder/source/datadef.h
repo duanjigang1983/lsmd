@@ -48,6 +48,7 @@ typedef struct
 #define TIMEOUT 5
 //#define DATA_DIR "data"
 #define MAX_REPO 100
+#define DIR_LEN 256
 typedef struct _repo
 {
 		char path [256];
@@ -63,6 +64,7 @@ typedef struct
 	unsigned char 	daemon;
 	unsigned char 	verb;
 	char			conf[256];
+	char 			basedir[DIR_LEN];
 	char 			sigfile[64];
  	int 			interval;
 	repo_t			repo_list[MAX_REPO];

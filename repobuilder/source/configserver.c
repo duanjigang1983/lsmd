@@ -250,6 +250,9 @@ int load_repo_conf (config_t * conf)
 	
 	conf->interval = atoi (read_string(ini, "general", "interval", "600"));
 	conf->nthread = atoi (read_string(ini, "general", "thread_num", "10"));
+	//added by duanjigang@2013-12-05 --start
+	sprintf (conf->basedir, "%s", read_string(ini, "general", "basedir", "/home/yum"));
+	//added by duanjigang@2013-12-05 --finish
 	sprintf (conf->sigfile, "%s", read_string(ini, "general", "signalfile", "update.txt"));
 
 	if (conf->verb)
@@ -271,7 +274,8 @@ int load_repo_conf (config_t * conf)
            {
                   if (strncasecmp(sc.entry_list[i].var_name, "path", 4) == 0)
                     {
-                           strcpy(rp.path, sc.entry_list[i].var_value);
+                           //strcpy(rp.path, sc.entry_list[i].var_value);
+                           sprintf(rp.path, "%s/%s", conf->basedir, sc.entry_list[i].var_value);
                            continue;
                      }	
 
