@@ -89,7 +89,7 @@ def add_rpm(rpmname):
     #osv=int(tmp1[0:tmp1.find('/')])
     osv=tmp1[0:tmp1.find('/')]
     #sqlinsert="insert into %s (name,version,release,packager,groupname,arch,osversion,repo,storepath)values('%s','%s', '%s', '%s','%s', '%s', %d, '%s', '%s');" % (tbname,\
-    sqlinsert="insert into %s (name,version,release,packager,groupname,arch,osversion,repo,storepath)values('%s','%s', '%s', '%s','%s', '%s', %s, '%s', '%s');" % (tbname,\
+    sqlinsert="insert into %s (name,version,release,packager,groupname,arch,osversion,repo,storepath)values('%s','%s', '%s', '%s','%s', '%s', '%s', '%s', '%s');" % (tbname,\
             ri['name'], ri['ver'], ri['rl'], ri['packager'], ri['group'], ri['arch'], osv, repo, dstfile)
     try:
         cx = sqlite3.connect(dbname)  
