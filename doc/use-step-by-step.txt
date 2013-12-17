@@ -1,0 +1,500 @@
+--- try to use lsmd step by step
+
+本文从上到下介绍lsmd工具集的使用，其中包括：
+
+(1) rpm发布端.
+
+(2) rpm编译机器。
+
+(3) yum根服务器。
+
+(4) 安装客户端。
+
+
+
+首先，关于发布端和rpm编译机器的部署方法，这篇文章：
+
+https://github.com/duanjigang1983/lsmd/blob/master/doc/install-handbook.txt
+
+中已经有了详细说明，本文不再重复。
+
+所以，本文着重介绍 yum 根服务器的部署配置，以及安装客户端的配置。
+
+
+
+1）redhat 仓库结构
+
+当 (1) (2) （3）机器上的程序都已经部署完成后，rpm根服务器上的 yum 仓库并不能独立提供包安装服务，
+
+这是因为在我们的根服务器上只有develop和extras两个仓库，而redhat仓库并不存在，在现实中，好多应用包
+
+都是依赖redhat自带包的，所以，我们要给yum仓库添加redhat仓库，仓库的目录结构如《linux 软件管理平台设计与实现》
+
+ls online/redhat/
+
+4.8  5.2  5.4  5.7  5Server  5u3  5u6  5u8  6.1  6.3      6u0  6u2  readme.txt
+4AS  5.3  5.6  5.8  5u2      5u4  5u7  6.0  6.2  6Server  6u1  6u3
+
+随便打开一个目录，你就能看明白其中的道理，如5u8 和 5Server.
+
+输出如下：
+
+online/redhat/5u8/
+├── os
+│   ├── i386
+│   │   └── repodata
+│   │       ├── filelists.sqlite.bz2
+│   │       ├── filelists.xml.gz
+│   │       ├── other.sqlite.bz2
+│   │       ├── other.xml.gz
+│   │       ├── primary.sqlite.bz2
+│   │       ├── primary.xml.gz
+│   │       └── repomd.xml
+│   └── x86_64
+│       ├── Cluster -> ../../../5.8/Cluster
+│       ├── ClusterStorage -> ../../../5.8/ClusterStorage
+│       ├── repodata
+│       │   ├── filelists.sqlite.bz2
+│       │   ├── filelists.xml.gz
+│       │   ├── other.sqlite.bz2
+│       │   ├── other.xml.gz
+│       │   ├── primary.sqlite.bz2
+│       │   ├── primary.xml.gz
+│       │   └── repomd.xml
+│       ├── Server -> ../../../5.8/Server
+│       └── VT -> ../../../5.8/VT
+└── updates
+    ├── i386
+    │   └── repodata
+    │       ├── filelists.sqlite.bz2
+    │       ├── filelists.xml.gz
+    │       ├── other.sqlite.bz2
+    │       ├── other.xml.gz
+    │       ├── primary.sqlite.bz2
+    │       ├── primary.xml.gz
+    │       └── repomd.xml
+    └── x86_64
+        └── repodata
+            ├── filelists.sqlite.bz2
+            ├── filelists.xml.gz
+            ├── other.sqlite.bz2
+            ├── other.xml.gz
+            ├── primary.sqlite.bz2
+            ├── primary.xml.gz
+            └── repomd.xml
+
+5Server的目录结构如下：
+
+online/redhat/5Server/
+├── os
+│   ├── i386
+│   │   └── repodata
+│   │       ├── filelists.sqlite.bz2
+│   │       ├── filelists.xml.gz
+│   │       ├── other.sqlite.bz2
+│   │       ├── other.xml.gz
+│   │       ├── primary.sqlite.bz2
+│   │       ├── primary.xml.gz
+│   │       └── repomd.xml
+│   └── x86_64
+│       ├── Cluster -> ../../../5.8/Cluster
+│       ├── ClusterStorage -> ../../../5.8/ClusterStorage
+│       ├── repodata
+│       │   ├── filelists.sqlite.bz2
+│       │   ├── filelists.xml.gz
+│       │   ├── other.sqlite.bz2
+│       │   ├── other.xml.gz
+│       │   ├── primary.sqlite.bz2
+│       │   ├── primary.xml.gz
+│       │   └── repomd.xml
+│       ├── Server -> ../../../5.8/Server
+│       └── VT -> ../../../5.8/VT
+└── updates
+    ├── i386
+    │   ├── openssl-0.9.8e-22.el5.3.i386.rpm
+    │   ├── openssl-0.9.8e-22.el5.4.i386.rpm
+    │   ├── openssl-devel-0.9.8e-22.el5.3.i386.rpm
+    │   ├── openssl-devel-0.9.8e-22.el5.4.i386.rpm
+    │   ├── openssl-perl-0.9.8e-22.el5.3.i386.rpm
+    │   ├── openssl-perl-0.9.8e-22.el5.4.i386.rpm
+    │   └── repodata
+    │       ├── filelists.sqlite.bz2
+    │       ├── filelists.xml.gz
+    │       ├── other.sqlite.bz2
+    │       ├── other.xml.gz
+    │       ├── primary.sqlite.bz2
+    │       ├── primary.xml.gz
+    │       └── repomd.xml
+    └── x86_64
+        ├── libpcap-devel-1.0.0-6.x86_64.rpm
+        ├── openssl-0.9.8e-22.el5.3.i686.rpm
+        ├── openssl-0.9.8e-22.el5.3.x86_64.rpm
+        ├── openssl-0.9.8e-22.el5.4.i686.rpm
+        ├── openssl-0.9.8e-22.el5.4.x86_64.rpm
+        ├── openssl-devel-0.9.8e-22.el5.3.i386.rpm
+        ├── openssl-devel-0.9.8e-22.el5.3.x86_64.rpm
+        ├── openssl-devel-0.9.8e-22.el5.4.i386.rpm
+        ├── openssl-devel-0.9.8e-22.el5.4.x86_64.rpm
+        ├── openssl-perl-0.9.8e-22.el5.3.x86_64.rpm
+        ├── openssl-perl-0.9.8e-22.el5.4.x86_64.rpm
+        └── repodata
+            ├── filelists.sqlite.bz2
+            ├── filelists.xml.gz
+            ├── other.sqlite.bz2
+            ├── other.xml.gz
+            ├── primary.sqlite.bz2
+            ├── primary.xml.gz
+            └── repomd.xml
+
+这个目录结构，正是书中所提到的目录组织方式。对于OS分支，并不需要经常更新索引，而updates目录中只有当有更新包发布过去时再更新索引就可以了。
+
+
+
+2）develop仓库结构。
+
+develop仓库的包增加了一级分支，test/stable, 因此，develop仓库目录结构如下（只显示了5u的目录结构）：
+
+online/develop/
+├── 5Server
+│   ├── i386
+│   │   ├── stable
+│   │   │   └── repodata
+│   │   │       ├── filelists.sqlite.bz2
+│   │   │       ├── filelists.xml.gz
+│   │   │       ├── other.sqlite.bz2
+│   │   │       ├── other.xml.gz
+│   │   │       ├── primary.sqlite.bz2
+│   │   │       ├── primary.xml.gz
+│   │   │       └── repomd.xml
+│   │   └── test
+│   │       └── repodata
+│   │           ├── filelists.sqlite.bz2
+│   │           ├── filelists.xml.gz
+│   │           ├── other.sqlite.bz2
+│   │           ├── other.xml.gz
+│   │           ├── primary.sqlite.bz2
+│   │           ├── primary.xml.gz
+│   │           └── repomd.xml
+│   ├── noarch
+│   │   ├── stable
+│   │   │   └── repodata
+│   │   │       ├── filelists.sqlite.bz2
+│   │   │       ├── filelists.xml.gz
+│   │   │       ├── other.sqlite.bz2
+│   │   │       ├── other.xml.gz
+│   │   │       ├── primary.sqlite.bz2
+│   │   │       ├── primary.xml.gz
+│   │   │       └── repomd.xml
+│   │   └── test
+│   │       ├── multipkg-1.2-2.noarch.rpm
+│   │       ├── pkgaudit-1.0.0-5.noarch.rpm
+│   │       ├── repodata
+│   │       │   ├── filelists.sqlite.bz2
+│   │       │   ├── filelists.xml.gz
+│   │       │   ├── other.sqlite.bz2
+│   │       │   ├── other.xml.gz
+│   │       │   ├── primary.sqlite.bz2
+│   │       │   ├── primary.xml.gz
+│   │       │   └── repomd.xml
+│   │       ├── repoutils-1.1.0-3.noarch.rpm
+│   │       ├── repoutils-1.1.0-5.noarch.rpm
+│   │       └── yumcache-0.0.1-2.noarch.rpm
+│   └── x86_64
+│       ├── stable
+│       │   └── repodata
+│       │       ├── filelists.sqlite.bz2
+│       │       ├── filelists.xml.gz
+│       │       ├── other.sqlite.bz2
+│       │       ├── other.xml.gz
+│       │       ├── primary.sqlite.bz2
+│       │       ├── primary.xml.gz
+│       │       └── repomd.xml
+│       └── test
+│           └── repodata
+│               ├── filelists.sqlite.bz2
+│               ├── filelists.xml.gz
+│               ├── other.sqlite.bz2
+│               ├── other.xml.gz
+│               ├── primary.sqlite.bz2
+│               ├── primary.xml.gz
+│               └── repomd.xml
+
+这样，当在客户端通过
+
+yum install -s test/stable pkg_name 
+
+安装包时，yum 就会选择去stable分支或者test分支查找安装指定的rpm包。
+
+3) extras仓库目录结构
+
+extras目录结构如下：
+
+online/extras/
+├── 5Server
+│   ├── i386
+│   │   └── repodata
+│   │       ├── filelists.sqlite.bz2
+│   │       ├── filelists.xml.gz
+│   │       ├── other.sqlite.bz2
+│   │       ├── other.xml.gz
+│   │       ├── primary.sqlite.bz2
+│   │       ├── primary.xml.gz
+│   │       └── repomd.xml
+│   ├── noarch
+│   │   ├── pkgrelease-1.1.0-4.noarch.rpm
+│   │   └── repodata
+│   │       ├── filelists.sqlite.bz2
+│   │       ├── filelists.xml.gz
+│   │       ├── other.sqlite.bz2
+│   │       ├── other.xml.gz
+│   │       ├── primary.sqlite.bz2
+│   │       ├── primary.xml.gz
+│   │       └── repomd.xml
+│   └── x86_64
+│       ├── repobuilder-1.1.0-3.x86_64.rpm
+│       ├── repodata
+│       │   ├── filelists.sqlite.bz2
+│       │   ├── filelists.xml.gz
+│       │   ├── other.sqlite.bz2
+│       │   ├── other.xml.gz
+│       │   ├── primary.sqlite.bz2
+│       │   ├── primary.xml.gz
+│       │   └── repomd.xml
+│       └── yumclone-1.0.0-2.x86_64.rpm
+└── 6Server
+    ├── i386
+    │   └── repodata
+    │       ├── filelists.sqlite.bz2
+    │       ├── filelists.xml.gz
+    │       ├── other.sqlite.bz2
+    │       ├── other.xml.gz
+    │       ├── primary.sqlite.bz2
+    │       ├── primary.xml.gz
+    │       └── repomd.xml
+    ├── noarch
+    │   ├── pkgrelease-1.1.0-4.noarch.rpm
+    │   └── repodata
+    │       ├── filelists.sqlite.bz2
+    │       ├── filelists.xml.gz
+    │       ├── other.sqlite.bz2
+    │       ├── other.xml.gz
+    │       ├── primary.sqlite.bz2
+    │       ├── primary.xml.gz
+    │       └── repomd.xml
+    └── x86_64
+        ├── repobuilder-1.1.0-3.x86_64.rpm
+        ├── repodata
+        │   ├── filelists.sqlite.bz2
+        │   ├── filelists.xml.gz
+        │   ├── other.sqlite.bz2
+        │   ├── other.xml.gz
+        │   ├── primary.sqlite.bz2
+        │   ├── primary.xml.gz
+        │   └── repomd.xml
+        └── yumclone-1.0.0-2.x86_64.rpm
+
+当multipkg,pkgaudit和repobuilder正常工作后，需要配置repobuilder的配置文件 /etc/repo.conf，添加所有目录分支，在这个文件中，需要添加18个条目，
+
+因为extras为 6个 (2*3个，2 {5u,6u} * 3 {i386,noarch,x86_64})
+
+而develop需要配置12个目录，2 {5u,6u} * 3 {i386,noarch,x86_64}* 2 ｛test,stable｝
+
+该文件后续考虑程序自动生存，目前是随从rpm一起安装的。
+
+4) web 服务配置。
+
+如果你还没有那么多的机器，需要增加镜像节点，那么，就先使用yum根节点来提供服务吧。
+
+首先，安装httpd服务，然后配置apache的web根目录为yum仓库的线上目录，比如：
+
+DocumentRoot "/home/cmesoft/yum/online"
+
+监听端口配置为81
+
+然后启动服务，检查本机的http服务是否正常：
+
+lynx  --dump http://127.0.0.1:81/redhat | grep redhat
+
+输出如下：
+
+1. http://127.0.0.1:81/redhat/?C=N;O=D
+   2. http://127.0.0.1:81/redhat/?C=M;O=A
+   3. http://127.0.0.1:81/redhat/?C=S;O=A
+   4. http://127.0.0.1:81/redhat/?C=D;O=A
+   6. http://127.0.0.1:81/redhat/4.8/
+   7. http://127.0.0.1:81/redhat/4AS/
+   8. http://127.0.0.1:81/redhat/5.2/
+   9. http://127.0.0.1:81/redhat/5.3/
+  10. http://127.0.0.1:81/redhat/5.4/
+  11. http://127.0.0.1:81/redhat/5.6/
+  12. http://127.0.0.1:81/redhat/5.7/
+  13. http://127.0.0.1:81/redhat/5.8/
+  14. http://127.0.0.1:81/redhat/5Server/
+  15. http://127.0.0.1:81/redhat/5u2/
+  16. http://127.0.0.1:81/redhat/5u3/
+  17. http://127.0.0.1:81/redhat/5u4/
+  18. http://127.0.0.1:81/redhat/5u6/
+  19. http://127.0.0.1:81/redhat/5u7/
+  20. http://127.0.0.1:81/redhat/5u8/
+  21. http://127.0.0.1:81/redhat/6.0/
+  22. http://127.0.0.1:81/redhat/6.1/
+  23. http://127.0.0.1:81/redhat/6.2/
+  24. http://127.0.0.1:81/redhat/6.3/
+  25. http://127.0.0.1:81/redhat/6Server/
+  说明当前机器的http服务是正常的。
+
+5）客户端配置。
+
+客户端需要安装repo配置文件和stage插件，因为yum还未配置前，并不能通过yum来安装初始化包，因此需要
+
+通过  yum/rpm + url 的方式来安装初始化包 repoutils
+
+或者拷贝到本地直接安装。
+
+另外，最好在安装repoutils之前清理下你的repo目录 /etc/yum.repos.d/
+
+和插件目录 /usr/lib/yum-plugins。
+
+安装完成后生成文件如下：
+
+ls /etc/yum.repos.d/
+develop.repo  extras.repo  RHEL.repo
+
+和
+
+/usr/lib/yum-plugins/stage.py
+
+这时，还不能直接使用yum,需要配置repoutils的配置文件，然后更新repo文件，比如一个样例是如下配置文件
+
+cat /usr/local/repoutils/conf/repoutils.conf
+domainname=http://192.168.1.95:81
+company=LSMD
+
+然后执行配置重新生成命令：
+
+/usr/local/repoutils/bin/init_yum.sh
+
+一切就OK了，
+
+可以查看redhat的repo配置文件如下：
+
+cat /etc/yum.repos.d/RHEL.repo 
+[redhat.6u2.base.$basearch]
+name=redhat
+baseurl=http://192.168.1.95:81/redhat/6u2/os/$basearch/
+gpgcheck=0
+
+
+[redhat.6u2.updates.$basearch]
+name=redhat updates
+baseurl=http://192.168.1.95:81/redhat/6u2/updates/$basearch/
+gpgcheck=0
+
+develop 仓库配置文件如下：
+
+[develop.6Server.i386.stable]
+name=develop Packages - For Develop - i386 - stable Branch
+baseurl=http://192.168.1.95:81/develop/6Server/i386/stable
+enabled=0
+gpgcheck=0
+gpgkey=http://192.168.1.95:81/develop/RPM-GPG-KEY-LSMD
+
+
+[develop.6Server.i386.test]
+name=develop Packages - For Develop - i386 - test Branch
+baseurl=http://192.168.1.95:81/develop/6Server/i386/test
+enabled=0
+gpgcheck=0
+gpgkey=http://192.168.1.95:81/develop/RPM-GPG-KEY-LSMD
+
+
+[develop.6Server.x86_64.stable]
+name=develop Packages - For Develop - x86_64 - stable Branch
+baseurl=http://192.168.1.95:81/develop/6Server/x86_64/stable
+enabled=0
+gpgcheck=0
+gpgkey=http://192.168.1.95:81/develop/RPM-GPG-KEY-LSMD
+
+
+[develop.6Server.x86_64.test]
+name=develop Packages - For Develop - x86_64 - test Branch
+baseurl=http://192.168.1.95:81/develop/6Server/x86_64/test
+enabled=0
+gpgcheck=0
+gpgkey=http://192.168.1.95:81/develop/RPM-GPG-KEY-LSMD
+
+
+[develop.6Server.noarch.stable]
+name=develop Packages - For Develop - noarch - stable Branch
+baseurl=http://192.168.1.95:81/develop/6Server/noarch/stable
+enabled=0
+gpgcheck=0
+gpgkey=http://192.168.1.95:81/develop/RPM-GPG-KEY-LSMD
+
+
+[develop.6Server.noarch.test]
+name=develop Packages - For Develop - noarch - test Branch
+baseurl=http://192.168.1.95:81/develop/6Server/noarch/test
+enabled=0
+gpgcheck=0
+gpgkey=http://192.168.1.95:81/develop/RPM-GPG-KEY-LSMD
+
+extras仓库配置文件内容如下：
+
+[extras.$releasever.$basearch]
+name=extras basearch
+baseurl=http://192.168.1.95:81/extras/$releasever/$basearch
+gpgcheck=0
+
+[extras.$releasever.noarch]
+name=extras noarch
+baseurl=http://192.168.1.95:81/extras/$releasever/noarch
+gpgcheck=0
+
+
+
+6）验证功能
+
+一切配置好以后，就可以通过yum命令来验证功能了，
+
+比如查看仓库列表：
+
+yum repolist 
+
+输出如下：
+
+Loaded plugins: security, stage
+repo id                                     repo name                                                              status
+develop.6Server.noarch.stable               develop Packages - For Develop - noarch - stable Branch                    0
+develop.6Server.x86_64.stable               develop Packages - For Develop - x86_64 - stable Branch                    0
+extras.6Server.noarch                       extras noarch                                                              1
+extras.6Server.x86_64                       extras basearch                                                            2
+redhat.6u2.base.x86_64                      redhat                                                                 3,596
+redhat.6u2.updates.x86_64                   redhat updates                                                             0
+repolist: 3,599
+查看extras仓库的包：
+
+yum list | grep extras.6Server
+
+输出如下：
+
+
+repobuilder.x86_64                  1.1.0-3               extras.6Server.x86_64 
+yumclone.x86_64                     1.0.0-2               extras.6Server.x86_64 
+
+查看 develop 仓库的包：
+
+yum list -s test | grep develop
+
+输出如下：
+yumcache.noarch                     0.0.1-2               develop.6Server.noarch.test
+
+因为目前还没开发修改stage的功能，包发布后默认都在test分支，因此，通过
+
+yum list -s stable | grep develop
+
+看不到任何输出。
+
+后续增加上修改stage的功能后，再验证这点，本文先到此为止。
+----------2013-12-18 0:02 -- by duanjigang
+
