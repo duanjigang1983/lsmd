@@ -13,6 +13,7 @@ The software management platform on linux.
 Contact:
 
 Email: duanjigang1983@gmail.com
+
 maillist: access 
          http://www.freelists.org/list/lsmd
 	to add in  maillist of lsmd
