@@ -14,6 +14,7 @@ The bootstrap process is a little primitive now, but here are the steps:
 1. install YAML::Syck and makemaker
 <pre>
 yum install perl-YAML-Syck perl-ExtUtils-MakeMaker
+<perl-ExtUtils-MakeMaker not required for centos 5>
 </pre>
 1. git clone multipkg
 1. cd multipkg

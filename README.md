@@ -17,3 +17,5 @@ Email: duanjigang1983@gmail.com
 maillist: access 
          http://www.freelists.org/list/lsmd
 	to add in  maillist of lsmd
+logs:
+(1) 20140304: adding requring rpm for centos 5 at "multipkg/requres/5/*.rpm"
